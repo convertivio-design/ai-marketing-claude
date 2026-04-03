@@ -61,6 +61,32 @@ def build_pdf_report(analysis_data: dict, output_filename: str = "report.pdf"):
     except Exception as e:
         raise Exception(f"PDF Generation failed: {str(e)}")
 
+def get_marketing_template(template_name: str, replacements: dict = None):
+    """
+    Read a marketing template and replace placeholders with custom values.
+    template_name: e.g., 'email-welcome.md', 'proposal-template.md'
+    """
+    template_path = os.path.join("templates", template_name)
+    if not os.path.exists(template_path):
+        # Try adding extension if missing
+        if not template_name.endswith(".md"):
+            template_path += ".md"
+
+    if not os.path.exists(template_path):
+        raise Exception(f"Template not found: {template_name}")
+
+    with open(template_path, "r") as f:
+        content = f.read()
+
+    if replacements:
+        for key, value in replacements.items():
+            placeholder = f"[{key}]"
+            content = content.replace(placeholder, str(value))
+            # Also try without brackets just in case
+            content = content.replace(key, str(value))
+
+    return content
+
 # --- Usage Example ---
 if __name__ == "__main__":
     # 1. Audit a site

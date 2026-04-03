@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Marketing Suite Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .score-gauge {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1B2A4A;
+            border: 10px solid #f3f4f6;
+            margin: 0 auto;
+        }
+        .score-low { border-color: #ef4444; }
+        .score-medium { border-color: #f59e0b; }
+        .score-high { border-color: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <div class="max-w-6xl mx-auto px-4 py-12">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-extrabold text-blue-900 mb-2">AI Marketing Suite</h1>
+            <p class="text-xl text-gray-600">Analyze any website's marketing performance in seconds.</p>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-12">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="urlInput" placeholder="Enter website URL (e.g., example.com)"
+                       class="flex-1 px-6 py-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg">
+                <button id="analyzeBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-200">
+                    Run Marketing Audit
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+            <p class="text-gray-600 text-lg">Analyzing website metrics, SEO, and conversion signals...</p>
+        </div>
+
+        <!-- Results Dashboard -->
+        <div id="results" class="hidden space-y-12">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+                    <h3 class="text-gray-500 font-medium mb-6 uppercase tracking-wider">Overall Score</h3>
+                    <div id="overallScoreGauge" class="score-gauge">--</div>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 md:col-span-2">
+                    <h3 class="text-gray-500 font-medium mb-6 uppercase tracking-wider">Score Breakdown</h3>
+                    <div id="scoreBreakdown" class="space-y-4">
+                        <!-- Scores will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Findings -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-900">Key Audit Findings</h3>
+                </div>
+                <ul id="findingsList" class="divide-y divide-gray-100">
+                    <!-- Findings will be injected here -->
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="text-center">
+                <button id="downloadPdfBtn" class="bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-xl font-bold transition-all shadow-xl">
+                    Download Full PDF Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentAnalysisData = null;
+
+        const urlInput = document.getElementById('urlInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const overallScoreGauge = document.getElementById('overallScoreGauge');
+        const scoreBreakdown = document.getElementById('scoreBreakdown');
+        const findingsList = document.getElementById('findingsList');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) return alert('Please enter a URL');
+
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+
+                if (data.status === 'error') throw new Error(data.message);
+
+                currentAnalysisData = data;
+                displayResults(data.analysis);
+            } catch (err) {
+                alert(`Analysis failed: ${err.message}`);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+
+        function displayResults(analysis) {
+            results.classList.remove('hidden');
+
+            // Overall Score
+            const score = Math.round(analysis.overall_score * 10); // Normalizing to 0-100 for display
+            overallScoreGauge.innerText = score;
+            overallScoreGauge.className = 'score-gauge ' + (score < 50 ? 'score-low' : score < 75 ? 'score-medium' : 'score-high');
+
+            // Breakdown
+            scoreBreakdown.innerHTML = Object.entries(analysis.scores).map(([cat, val]) => `
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700 capitalize">${cat}</span>
+                        <span class="text-sm font-bold text-gray-900">${val}/10</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${val * 10}%"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Findings
+            const findings = [
+                ...analysis.seo.heading_issues.map(f => ({ severity: 'Medium', text: f })),
+                ...(analysis.seo.images_without_alt > 0 ? [{ severity: 'Low', text: `${analysis.seo.images_without_alt} images missing alt text` }] : []),
+                ...(analysis.conversion.cta_count < 2 ? [{ severity: 'High', text: 'Low number of calls-to-action detected' }] : [])
+            ];
+
+            if (findings.length === 0) {
+                findingsList.innerHTML = '<li class="px-8 py-6 text-gray-500 italic">No major issues found. Good job!</li>';
+            } else {
+                findingsList.innerHTML = findings.map(f => `
+                    <li class="px-8 py-6 flex items-start gap-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold uppercase ${f.severity === 'High' ? 'bg-red-100 text-red-700' : f.severity === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}">${f.severity}</span>
+                        <span class="text-gray-700">${f.text}</span>
+                    </li>
+                `).join('');
+            }
+        }
+
+        downloadPdfBtn.addEventListener('click', async () => {
+            if (!currentAnalysisData) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/generate-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentAnalysisData)
+                });
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'marketing-audit.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) {
+                alert('PDF generation failed');
+            }
+        });
+    </script>
+</body>
+</html>

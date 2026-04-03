@@ -37,7 +37,48 @@ Once running, you can access the interactive documentation at `http://localhost:
 - `GET /social-calendar?topic=YourTopic&days=30`: Get a content calendar.
 - `POST /generate-pdf`: Send analysis JSON and receive a professional PDF file.
 
-## 3. Recommended Workflow
+## 3. HTML/JS Dashboard Example (`index.html`)
+
+We've provided a simple, interactive dashboard in `index.html`. It uses **Tailwind CSS** and vanilla JavaScript to:
+- Take a URL as input.
+- Call the FastAPI backend.
+- Display an overall score gauge and score breakdown.
+- List key findings with severity levels.
+- Download the final PDF report.
+
+To use it, just start your FastAPI server (`python3 web_integration_example.py`) and open `index.html` in your browser.
+
+## 4. Messaging Platform Webhooks (`webhook_integration.py`)
+
+For automated alerts and notifications, use the `webhook_integration.py` example. It shows how to:
+- Format audit results for **Slack** (Block Kit) or **Discord** (Embeds).
+- Send notifications automatically after an audit completes.
+
+Example usage:
+```python
+from webhook_integration import audit_and_notify
+
+# Send an audit summary to Discord
+audit_and_notify("https://example.com", "YOUR_DISCORD_WEBHOOK_URL", "discord")
+```
+
+## 5. Plug-and-Play Flask Backend (`flask_integration_example.py`)
+
+If you prefer **Flask** over FastAPI, we've provided a complete Flask implementation in `flask_integration_example.py`. It provides the same endpoints as the FastAPI version and is ready to be dropped into any existing Flask project.
+
+## 6. Marketing Templates (`marketing_wrapper.py`)
+
+You can easily load and populate the included marketing templates (email sequences, proposals, etc.) using the `get_marketing_template` function:
+
+```python
+from marketing_wrapper import get_marketing_template
+
+# Populate a welcome email sequence
+replies = {"[brand]": "ACME Corp", "[product]": "Marketing Suite"}
+email_sequence = get_marketing_template("email-welcome", replies)
+```
+
+## 7. Recommended Workflow
 
 For a production-grade web app, we recommend:
 
@@ -45,7 +86,7 @@ For a production-grade web app, we recommend:
 2. **Caching**: Store analysis results in a database (e.g., PostgreSQL or Redis) to avoid re-scanning the same URL multiple times.
 3. **Frontend Integration**: Use a framework like React, Vue, or Next.js to display the JSON results in a beautiful dashboard. The `overall_score` can be shown using a gauge component, and the `findings` list can be displayed as actionable tasks.
 
-## 4. Key Functions to Use
+## 8. Key Functions to Use
 
 ### Marketing Audit
 ```python

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 import os
 import json
@@ -14,6 +15,15 @@ from marketing_wrapper import (
 )
 
 app = FastAPI(title="AI Marketing Suite API")
+
+# Add CORS middleware for local frontend development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
