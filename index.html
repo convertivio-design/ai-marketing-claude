@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Marketing Suite | Dark Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #fafafa; }
+        .score-gauge {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 800;
+            background: #18181b;
+            border: 4px solid #27272a;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .score-gauge::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            transition: border-color 0.5s ease;
+        }
+        .score-low::after { border-color: #ef4444; }
+        .score-medium::after { border-color: #f59e0b; }
+        .score-high::after { border-color: #10b981; }
+
+        .card { background: #18181b; border: 1px solid #27272a; border-radius: 1rem; }
+        .input-dark { background: #09090b; border: 1px solid #27272a; color: white; }
+        .input-dark:focus { border-color: #3f3f46; outline: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="max-w-5xl mx-auto px-6 py-16">
+        <!-- Header -->
+        <header class="mb-16">
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2">AI Marketing Suite</h1>
+            <p class="text-zinc-500 font-medium">Minimalist marketing analysis and conversion audit.</p>
+        </header>
+
+        <!-- Search -->
+        <div class="card p-8 mb-12">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="urlInput" placeholder="Enter website URL (e.g., example.com)"
+                       class="flex-1 input-dark px-6 py-4 rounded-lg text-lg placeholder-zinc-600">
+                <button id="analyzeBtn" class="bg-white hover:bg-zinc-200 text-black px-10 py-4 rounded-lg font-bold text-lg transition-all">
+                    Run Audit
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden text-center py-24">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mb-6"></div>
+            <p class="text-zinc-400 text-sm tracking-widest uppercase">Analyzing conversion signals...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden space-y-12 animate-in fade-in duration-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Gauge -->
+                <div class="card p-10 flex flex-col items-center justify-center">
+                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-8">Overall Score</span>
+                    <div id="overallScoreGauge" class="score-gauge">--</div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="card p-10 md:col-span-2">
+                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-8 block">Performance Metrics</span>
+                    <div id="scoreBreakdown" class="space-y-6">
+                        <!-- Scores injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Findings -->
+            <div class="card overflow-hidden">
+                <div class="px-8 py-6 border-b border-zinc-800 bg-zinc-900/50">
+                    <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-widest">Audit Findings</h3>
+                </div>
+                <ul id="findingsList" class="divide-y divide-zinc-800">
+                    <!-- Findings injected here -->
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-center pt-8">
+                <button id="downloadPdfBtn" class="border border-zinc-700 hover:bg-zinc-800 text-white px-10 py-4 rounded-lg font-bold transition-all">
+                    Download PDF Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentAnalysisData = null;
+
+        const urlInput = document.getElementById('urlInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const overallScoreGauge = document.getElementById('overallScoreGauge');
+        const scoreBreakdown = document.getElementById('scoreBreakdown');
+        const findingsList = document.getElementById('findingsList');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.status === 'error') throw new Error(data.message);
+                currentAnalysisData = data;
+                displayResults(data.analysis);
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+
+        function displayResults(analysis) {
+            results.classList.remove('hidden');
+            const score = Math.round(analysis.overall_score * 10);
+            overallScoreGauge.innerText = score;
+            overallScoreGauge.className = 'score-gauge ' + (score < 50 ? 'score-low' : score < 75 ? 'score-medium' : 'score-high');
+
+            scoreBreakdown.innerHTML = Object.entries(analysis.scores).map(([cat, val]) => `
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-tighter">${cat}</span>
+                        <span class="text-xs font-bold text-white">${val}/10</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 rounded-full h-1.5">
+                        <div class="bg-white h-1.5 rounded-full" style="width: ${val * 10}%"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            const findings = [
+                ...analysis.seo.heading_issues.map(f => ({ severity: 'Medium', text: f })),
+                ...(analysis.seo.images_without_alt > 0 ? [{ severity: 'Low', text: `${analysis.seo.images_without_alt} images missing alt text` }] : []),
+                ...(analysis.conversion.cta_count < 2 ? [{ severity: 'High', text: 'Low call-to-action density' }] : [])
+            ];
+
+            findingsList.innerHTML = findings.length ? findings.map(f => `
+                <li class="px-8 py-6 flex items-center gap-6">
+                    <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${f.severity === 'High' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : f.severity === 'Medium' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">${f.severity}</span>
+                    <span class="text-sm text-zinc-300 font-medium">${f.text}</span>
+                </li>
+            `).join('') : '<li class="px-8 py-6 text-zinc-500 italic text-sm">Optimal marketing signals detected.</li>';
+        }
+
+        downloadPdfBtn.addEventListener('click', async () => {
+            if (!currentAnalysisData) return;
+            try {
+                const response = await fetch(`${API_BASE}/generate-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentAnalysisData)
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'audit-report.pdf';
+                a.click();
+            } catch (err) {
+                alert('PDF failed');
+            }
+        });
+    </script>
+</body>
+</html>
