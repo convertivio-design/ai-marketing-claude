@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Marketing Suite | Demo Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #000; color: #fff; }
+        .feature-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
+        .feature-card:hover { border-color: #333; transform: translateY(-5px); }
+        .step-num { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #fff; color: #000; font-weight: 800; border-radius: 50%; font-size: 0.75rem; }
+        .highlight { color: #555; font-weight: 600; }
+
+        .score-display {
+            font-size: 6rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to bottom, #fff 0%, #333 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32">
+    <!-- Navbar -->
+    <nav class="border-b border-zinc-900 py-6 px-10 flex justify-between items-center">
+        <span class="text-xs font-black tracking-widest uppercase">AI Marketing Suite v2.0 // Demo Experience</span>
+        <a href="index.html" class="text-[10px] uppercase font-bold text-zinc-500 hover:text-white transition-all">Switch to Dashboard →</a>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-10 py-24">
+        <!-- Storytelling Hero -->
+        <div class="max-w-3xl mb-32">
+            <h1 class="text-6xl font-extrabold tracking-tighter leading-tight mb-8">
+                Turning invisible data into <span class="text-zinc-600 underline decoration-zinc-800">marketing growth</span>.
+            </h1>
+            <p class="text-xl text-zinc-500 leading-relaxed font-light mb-12">
+                External-facing demonstration of our core audit engine. Experience how we analyze conversion density,
+                SEO integrity, and trust signals for any website in under 15 seconds.
+            </p>
+
+            <!-- Audit Input -->
+            <div class="flex gap-4 p-2 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl overflow-hidden focus-within:border-[#333] transition-all">
+                <input type="text" id="urlInput" placeholder="Analyze a website URL..."
+                       class="flex-1 bg-transparent px-6 py-4 text-lg border-none focus:outline-none">
+                <button id="analyzeBtn" class="bg-white text-black px-10 py-4 rounded-lg font-bold text-lg hover:bg-zinc-200 transition-all">
+                    Generate Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- Technical vs Non-Tech Flow -->
+        <div id="flowDisplay" class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-32">
+            <div class="feature-card p-10 rounded-3xl">
+                <div class="step-num mb-8">01</div>
+                <h3 class="text-xl font-bold mb-4">Deep Extraction</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">
+                    <span class="highlight">Technical:</span> Headless crawling of DOM, metadata analysis, and tag detection.
+                    <br><br>
+                    <span class="highlight">Business:</span> We look at what your customers see first.
+                </p>
+            </div>
+            <div class="feature-card p-10 rounded-3xl">
+                <div class="step-num mb-8">02</div>
+                <h3 class="text-xl font-bold mb-4">Cognitive Audit</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">
+                    <span class="highlight">Technical:</span> Pattern matching for CTA density and SEO hierarchy scoring.
+                    <br><br>
+                    <span class="highlight">Business:</span> We measure how hard your website is working to sell.
+                </p>
+            </div>
+            <div class="feature-card p-10 rounded-3xl">
+                <div class="step-num mb-8">03</div>
+                <h3 class="text-xl font-bold mb-4">Strategy Output</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">
+                    <span class="highlight">Technical:</span> Generation of structured JSON payload for cross-platform reports.
+                    <br><br>
+                    <span class="highlight">Business:</span> A prioritized roadmap for immediate marketing improvements.
+                </p>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden text-center py-40 animate-pulse">
+            <span class="text-5xl font-black text-zinc-800 uppercase tracking-tighter">Running Audit...</span>
+        </div>
+
+        <!-- Demo Results Section -->
+        <div id="results" class="hidden animate-in fade-in slide-in-from-bottom-12 duration-1000">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
+                <!-- Large Score -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block mb-6">Marketing Maturity Index</span>
+                    <div id="overallScore" class="score-display">--</div>
+                    <p class="text-zinc-500 mt-12 text-lg leading-relaxed font-light">
+                        This score reflects the weighted average of your website's performance across SEO, Conversion, Trust, and Tracking.
+                        A score above 75 indicates a high-performing digital asset.
+                    </p>
+                </div>
+
+                <!-- Strategic Summary -->
+                <div class="space-y-12">
+                    <div class="border-l-2 border-zinc-900 pl-10">
+                        <h4 class="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-4">Immediate Actions</h4>
+                        <ul id="findingsList" class="space-y-4">
+                            <!-- Findings injected here -->
+                        </ul>
+                    </div>
+
+                    <div class="flex gap-6">
+                        <button id="downloadPdfBtn" class="bg-white text-black px-8 py-4 rounded-lg font-bold hover:bg-zinc-200 transition-all">
+                            Full Strategy PDF
+                        </button>
+                        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="border border-zinc-800 text-zinc-400 px-8 py-4 rounded-lg font-bold hover:bg-zinc-900 transition-all">
+                            New Audit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentAnalysisData = null;
+
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const urlInput = document.getElementById('urlInput');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const flowDisplay = document.getElementById('flowDisplay');
+        const overallScore = document.getElementById('overallScore');
+        const findingsList = document.getElementById('findingsList');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+            flowDisplay.classList.add('opacity-20');
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.status === 'error') throw new Error(data.message);
+                currentAnalysisData = data;
+                displayResults(data.analysis);
+            } catch (err) {
+                alert(`Analysis error: ${err.message}`);
+                flowDisplay.classList.remove('opacity-20');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+
+        function displayResults(analysis) {
+            results.classList.remove('hidden');
+            flowDisplay.classList.add('hidden');
+
+            const score = Math.round(analysis.overall_score * 10);
+            overallScore.innerText = score;
+
+            const findings = [
+                ...analysis.seo.heading_issues.map(f => ({ icon: '⚠️', text: f })),
+                ...(analysis.seo.images_without_alt > 0 ? [{ icon: '🖼️', text: `${analysis.seo.images_without_alt} images missing metadata` }] : []),
+                ...(analysis.conversion.cta_count < 2 ? [{ icon: '🎯', text: 'Low call-to-action performance density' }] : [])
+            ];
+
+            findingsList.innerHTML = findings.map(f => `
+                <li class="flex items-center gap-4 text-sm font-medium text-zinc-300">
+                    <span class="text-lg">${f.icon}</span>
+                    <span>${f.text}</span>
+                </li>
+            `).join('');
+        }
+
+        downloadPdfBtn.addEventListener('click', async () => {
+            if (!currentAnalysisData) return;
+            try {
+                const response = await fetch(`${API_BASE}/generate-pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentAnalysisData)
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'demonstration-audit.pdf';
+                a.click();
+            } catch (err) {
+                alert('PDF download failed');
+            }
+        });
+    </script>
+</body>
+</html>
